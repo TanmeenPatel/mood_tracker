@@ -18,11 +18,11 @@ class MainWindow(QWidget):
         self.MainUI()
         self.show()
     
-    def onclickbutton(self):
+    def creDBbutton(self):
         self.newwindow = CreateDBWindow()
         self.newwindow.show()
         self.newwindow.move(self.pos())
-    
+
     def MainUI(self):
         heading = QLabel('home',self)
         heading.move(50,20)
@@ -91,7 +91,7 @@ class MainWindow(QWidget):
         actionsBox = QGridLayout()
         creDB = QPushButton('create database',self)
         creDB.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
-        creDB.clicked.connect(self.onclickbutton)
+        creDB.clicked.connect(self.creDBbutton)
         creDB.show()
 
         addEn = QPushButton('add an entry',self)
@@ -139,9 +139,97 @@ class CreateDBWindow(QWidget):
         self.setFixedHeight(720)
         self.MainUI()
         self.show()
+
+    def createDatabase(self):
+        hostval = self.host.text()
+        userval = self.user.text()
+        passwordval = self.password.text()
+        con = mysql.connect(host=hostval,user=userval,password=passwordval)
+        cur = con.cursor()
+        cur.execute('create database MoodTracker')
+        print('Database created successfully')
+        cur.execute('use moodtracker')
+        cur.execute('create table mood (date date primary key, mood varchar(15), dayscore float(3,1), activities varchar(75), comments varchar(100))')
+        print('Table created successfully')
+
     def MainUI(self):
-        hi = QLabel('hi there, it works!',self)
-        hi.show()
+        self.heading = QLabel('create database',self)
+        self.heading.move(50,20)
+        self.heading.setStyleSheet('font-size: 56px; font-family: Times New Roman, serif')
+        self.heading.show()
+
+        self.imagelabel = QLabel(self)
+        self.image = QPixmap('Hammer.png')
+        self.nimage = self.image.scaled(QSize(120,120))
+        self.imagelabel.setPixmap(self.nimage)
+        self.imagelabel.move(900,20)
+        self.imagelabel.show()
+
+        self.hostLabel = QLabel('host: ',self)
+        self.hostLabel.move(50,150)
+        self.hostLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.hostLabel.show()
+
+        self.host = QLineEdit(self)
+        self.host.move(190,150)
+        self.host.setFixedWidth(500)
+        self.host.setFixedHeight(40)
+        self.host.setStyleSheet('font-size: 20px')
+        self.host.show()
+
+        self.userLabel = QLabel('user: ',self)
+        self.userLabel.move(50,230)
+        self.userLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.userLabel.show()
+
+        self.user = QLineEdit(self)
+        self.user.move(190,230)
+        self.user.setFixedWidth(500)
+        self.user.setFixedHeight(40)
+        self.user.setStyleSheet('font-size: 20px')
+        self.user.show()
+
+        self.passwordLabel = QLabel('password: ',self)
+        self.passwordLabel.move(50,310)
+        self.passwordLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.passwordLabel.show()
+
+        self.password = QLineEdit(self)
+        self.password.move(190,310)
+        self.password.setFixedWidth(500)
+        self.password.setFixedHeight(40)
+        self.password.setStyleSheet('font-size: 20px')
+        self.password.show()
+
+        # self.databaseLabel = QLabel('database: ',self)
+        # self.databaseLabel.move(50,390)
+        # self.databaseLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        # self.databaseLabel.show()
+
+        # self.database = QLineEdit(self)
+        # self.database.move(190,390)
+        # self.database.setFixedWidth(500)
+        # self.database.setFixedHeight(40)
+        # self.database.setStyleSheet('font-size: 20px')
+        # self.database.show()
+
+        self.createDBbutton = QPushButton('create database',self)
+        self.createDBbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        self.createDBbutton.move(50,480)
+        self.createDBbutton.show()
+        self.createDBbutton.clicked.connect(self.createDatabase)
+
+        self.backbutton = QPushButton('back to home',self)
+        self.backbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        self.backbutton.move(300,480)
+        self.backbutton.show()
+        self.backbutton.clicked.connect(lambda:self.close())
+
+        self.copyrightText = QLabel('© mood tracker 2023',self)
+        self.copyrightText.move(480,690)
+        self.copyrightText.setStyleSheet('font-weight:thin;font-family: Verdana,sans-serif; font-size: 16px;')
+
+
 
 app = QApplication([])
 app.setStyle('Fusion')
