@@ -1,13 +1,19 @@
 import sys
 from datetime import date
+import typing
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+from PyQt5.QtWidgets import QWidget
 import mysql.connector as mysql
 
 todaydate = date.today().strftime("%B %d, %Y")
+
+hostval = ""
+userval = ""
+passwordval = ""
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -20,6 +26,11 @@ class MainWindow(QWidget):
     
     def creDBbutton(self):
         self.newwindow = CreateDBWindow()
+        self.newwindow.show()
+        self.newwindow.move(self.pos())
+
+    def addEnbutton(self):
+        self.newwindow = AddEntryWindow()
         self.newwindow.show()
         self.newwindow.move(self.pos())
 
@@ -89,13 +100,14 @@ class MainWindow(QWidget):
         actionsButtons.show()
         
         actionsBox = QGridLayout()
-        creDB = QPushButton('create database',self)
+        creDB = QPushButton('create database/log in',self)
         creDB.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
         creDB.clicked.connect(self.creDBbutton)
         creDB.show()
 
         addEn = QPushButton('add an entry',self)
         addEn.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        addEn.clicked.connect(self.addEnbutton)
         addEn.show()
         
         editEn = QPushButton('edit an entry',self)
@@ -141,19 +153,66 @@ class CreateDBWindow(QWidget):
         self.show()
 
     def createDatabase(self):
-        hostval = self.host.text()
-        userval = self.user.text()
-        passwordval = self.password.text()
-        con = mysql.connect(host=hostval,user=userval,password=passwordval)
-        cur = con.cursor()
-        cur.execute('create database MoodTracker')
-        print('Database created successfully')
-        cur.execute('use moodtracker')
-        cur.execute('create table mood (date date primary key, mood varchar(15), dayscore float(3,1), activities varchar(75), comments varchar(100))')
-        print('Table created successfully')
+        try:
+            global hostval
+            global userval
+            global passwordval
+            hostval = self.host.text()
+            userval = self.user.text()
+            passwordval = self.password.text()
+            con = mysql.connect(host=hostval,user=userval,password=passwordval)
+            cur = con.cursor()
+            cur.execute('create database MoodTracker')
+            print('Database created successfully')
+            cur.execute('use moodtracker')
+            cur.execute('create table mood (date date primary key, mood varchar(15), dayscore float(3,1), activities varchar(75), comments varchar(100))')
+            print('Table created successfully')
+        except mysql.errors.InterfaceError:
+            self.alert1.show()
+            self.alert2.hide()
+        except mysql.errors.ProgrammingError:
+            self.alert1.show()
+            self.alert2.hide()
+        except mysql.errors.DatabaseError:
+            if hostval == '':
+                self.alert2.hide()
+                self.alert1.show()
+            else:
+                self.alert2.show()
+                self.alert1.hide()
+        else:
+            self.alert1.hide()
+            self.alert2.hide()
+            self.alert3.show()
+
+    def logIn(self):
+        try:
+            global hostval
+            global userval
+            global passwordval
+            hostval = self.host.text()
+            userval = self.user.text()
+            passwordval = self.password.text()
+            con2 = mysql.connect(host=hostval,user=userval,password=passwordval)
+            cur = con2.cursor()
+            if con2.is_connected():
+                self.alert1.hide()
+                self.alert2.hide()
+                self.alert3.hide()
+                self.alert4.show()
+            else:
+                self.alert1.show()
+                self.alert2.hide()
+                self.alert3.hide()
+                self.alert4.hide()
+        except:
+            self.alert1.show()
+            self.alert2.hide()
+            self.alert3.hide()
+            self.alert4.hide()
 
     def MainUI(self):
-        self.heading = QLabel('create database',self)
+        self.heading = QLabel('create database/log in',self)
         self.heading.move(50,20)
         self.heading.setStyleSheet('font-size: 56px; font-family: Times New Roman, serif')
         self.heading.show()
@@ -201,27 +260,21 @@ class CreateDBWindow(QWidget):
         self.password.setStyleSheet('font-size: 20px')
         self.password.show()
 
-        # self.databaseLabel = QLabel('database: ',self)
-        # self.databaseLabel.move(50,390)
-        # self.databaseLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
-        # self.databaseLabel.show()
-
-        # self.database = QLineEdit(self)
-        # self.database.move(190,390)
-        # self.database.setFixedWidth(500)
-        # self.database.setFixedHeight(40)
-        # self.database.setStyleSheet('font-size: 20px')
-        # self.database.show()
-
         self.createDBbutton = QPushButton('create database',self)
         self.createDBbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
         self.createDBbutton.move(50,480)
         self.createDBbutton.show()
         self.createDBbutton.clicked.connect(self.createDatabase)
 
+        self.loginbutton = QPushButton('log in',self)
+        self.loginbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        self.loginbutton.move(250,480)
+        self.loginbutton.show()
+        self.loginbutton.clicked.connect(self.logIn)
+
         self.backbutton = QPushButton('back to home',self)
         self.backbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
-        self.backbutton.move(300,480)
+        self.backbutton.move(345,480)
         self.backbutton.show()
         self.backbutton.clicked.connect(lambda:self.close())
 
@@ -229,9 +282,137 @@ class CreateDBWindow(QWidget):
         self.copyrightText.move(480,690)
         self.copyrightText.setStyleSheet('font-weight:thin;font-family: Verdana,sans-serif; font-size: 16px;')
 
+        self.alert1 = QLabel('Enter the correct data in all fields',self)
+        self.alert1.move(50,550)
+        self.alert1.setStyleSheet('color: #F04E4E; font-size: 24px;')
+        self.alert1.hide()
 
+        self.alert2 = QLabel('Database already created',self)
+        self.alert2.move(50,550)
+        self.alert2.setStyleSheet('color: #F04E4E; font-size: 24px;')
+        self.alert2.hide()
 
-app = QApplication([])
-app.setStyle('Fusion')
-mw = MainWindow()
-app.exec_()
+        self.alert3 = QLabel('Database created successfully',self)
+        self.alert3.move(50,550)
+        self.alert3.setStyleSheet('color: #4bb85f; font-size: 24px;')
+        self.alert3.hide()
+
+        self.alert4 = QLabel('Logged in successfully',self)
+        self.alert4.move(50,550)
+        self.alert4.setStyleSheet('color: #4bb85f; font-size: 24px;')
+        self.alert4.hide()
+
+class AddEntryWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('mood tracker')
+        self.setFixedHeight(720)
+        self.setFixedWidth(1080)
+        self.MainUI()
+        self.show()
+
+    def addEntry(self):
+        date = self.date.text()
+        mood = self.mood.text()
+        daysc = self.dayscore.text()
+        acts = self.activities.text()
+        comms = self.comments.text()
+        con = mysql.connect(host=hostval,user=userval,password=passwordval,database='moodtracker')
+        cur = con.cursor()
+        q = "insert into mood values('{}','{}',{},'{}','{}')".format(date,mood,daysc,acts,comms)
+        cur.execute(q)
+        con.commit()
+
+    def MainUI(self):
+        self.heading = QLabel('add entry',self)
+        self.heading.move(50,20)
+        self.heading.setStyleSheet('font-size: 56px; font-family: Times New Roman, serif')
+        self.heading.show()
+
+        self.imagelabel = QLabel(self)
+        self.image = QPixmap('Memo.png')
+        self.nimage = self.image.scaled(QSize(120,120))
+        self.imagelabel.setPixmap(self.nimage)
+        self.imagelabel.move(900,20)
+        self.imagelabel.show()
+
+        self.dateLabel = QLabel('date: ',self)
+        self.dateLabel.move(50,150)
+        self.dateLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.dateLabel.show()
+
+        self.date = QLineEdit(self)
+        self.date.move(200,150)
+        self.date.setFixedWidth(500)
+        self.date.setFixedHeight(40)
+        self.date.setStyleSheet('font-size: 20px')
+        self.date.show()
+
+        self.moodLabel = QLabel('mood: ',self)
+        self.moodLabel.move(50,230)
+        self.moodLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.moodLabel.show()
+
+        self.mood = QLineEdit(self)
+        self.mood.move(200,230)
+        self.mood.setFixedWidth(500)
+        self.mood.setFixedHeight(40)
+        self.mood.setStyleSheet('font-size: 20px')
+        self.mood.show()
+
+        self.dayscoreLabel = QLabel('day score: ',self)
+        self.dayscoreLabel.move(50,310)
+        self.dayscoreLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.dayscoreLabel.show()
+
+        self.dayscore = QLineEdit(self)
+        self.dayscore.move(200,310)
+        self.dayscore.setFixedWidth(500)
+        self.dayscore.setFixedHeight(40)
+        self.dayscore.setStyleSheet('font-size: 20px')
+        self.dayscore.show()
+
+        self.activitiesLabel = QLabel('activities: ',self)
+        self.activitiesLabel.move(50,390)
+        self.activitiesLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.activitiesLabel.show()
+
+        self.activities = QLineEdit(self)
+        self.activities.move(200,390)
+        self.activities.setFixedWidth(500)
+        self.activities.setFixedHeight(40)
+        self.activities.setStyleSheet('font-size: 20px')
+        self.activities.show()
+
+        self.commentsLabel = QLabel('comments: ',self)
+        self.commentsLabel.move(50,470)
+        self.commentsLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.commentsLabel.show()
+
+        self.comments = QLineEdit(self)
+        self.comments.move(200,470)
+        self.comments.setFixedWidth(500)
+        self.comments.setFixedHeight(120)
+        self.comments.setStyleSheet('font-size: 20px;')
+
+        self.addEnbutton = QPushButton('add entry',self)
+        self.addEnbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        self.addEnbutton.move(50,620)
+        self.addEnbutton.show()
+        self.addEnbutton.clicked.connect(self.addEntry)
+
+        self.backbutton = QPushButton('back to home',self)
+        self.backbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        self.backbutton.move(200,620)
+        self.backbutton.show()
+        self.backbutton.clicked.connect(lambda:self.close())
+
+        self.copyrightText = QLabel('© mood tracker 2023',self)
+        self.copyrightText.move(480,690)
+        self.copyrightText.setStyleSheet('font-weight:thin;font-family: Verdana,sans-serif; font-size: 16px;')
+
+if __name__ == "__main__":
+    app = QApplication([])
+    app.setStyle('Fusion')
+    mw = MainWindow()
+    sys.exit(app.exec_())
