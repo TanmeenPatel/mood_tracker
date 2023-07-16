@@ -1,3 +1,4 @@
+#Imported modules
 import sys
 from datetime import date
 import typing
@@ -9,11 +10,14 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QWidget
 import mysql.connector as mysql
 
+#Global variables needed throughout program
 todaydate = date.today().strftime("%B %d, %Y")
-
 hostval = ""
 userval = ""
 passwordval = ""
+
+#Instructions for the Application
+inst = 'Welcome to mood tracker, your secure space to save your thoughts and track your mood.'
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -312,16 +316,37 @@ class AddEntryWindow(QWidget):
         self.show()
 
     def addEntry(self):
-        date = self.date.text()
-        mood = self.mood.text()
-        daysc = self.dayscore.text()
-        acts = self.activities.text()
-        comms = self.comments.text()
-        con = mysql.connect(host=hostval,user=userval,password=passwordval,database='moodtracker')
-        cur = con.cursor()
-        q = "insert into mood values('{}','{}',{},'{}','{}')".format(date,mood,daysc,acts,comms)
-        cur.execute(q)
-        con.commit()
+        try:
+            date = self.date.text()
+            mood = self.mood.text()
+            daysc = self.dayscore.text()
+            acts = self.activities.text()
+            comms = self.comments.text()
+            con = mysql.connect(host=hostval,user=userval,password=passwordval,database='moodtracker')
+            cur = con.cursor()
+            q = "insert into mood values('{}','{}',{},'{}','{}')".format(date,mood,daysc,acts,comms)
+            cur.execute(q)
+            con.commit()
+        except mysql.errors.ProgrammingError:
+            self.alert3.hide()
+            self.alert2.hide()
+            self.alert4.hide()
+            self.alert1.show()
+        except mysql.errors.DataError:
+            self.alert4.hide()
+            self.alert1.hide()
+            self.alert2.hide()
+            self.alert3.show()
+        except mysql.errors.IntegrityError:
+            self.alert1.hide()
+            self.alert2.hide()
+            self.alert3.hide()
+            self.alert4.show()
+        else:
+            self.alert1.hide()
+            self.alert3.hide()
+            self.alert4.hide()
+            self.alert2.show()
 
     def MainUI(self):
         self.heading = QLabel('add entry',self)
@@ -407,10 +432,31 @@ class AddEntryWindow(QWidget):
         self.backbutton.show()
         self.backbutton.clicked.connect(lambda:self.close())
 
+        self.alert1 = QLabel('Enter the correct data in all fields',self)
+        self.alert1.move(380,625)
+        self.alert1.setStyleSheet('color: #F04E4E; font-size: 24px;')
+        self.alert1.hide()
+
+        self.alert2 = QLabel('Entry added successfully',self)
+        self.alert2.move(380,625)
+        self.alert2.setStyleSheet('color: #4bb85f; font-size: 24px;')
+        self.alert2.hide()
+
+        self.alert3 = QLabel("Check if entered data is in correct format/doesn't exceed word limit",self)
+        self.alert3.move(380,625)
+        self.alert3.setStyleSheet('color: #F04E4E; font-size: 24px;')
+        self.alert3.hide()
+
+        self.alert4 = QLabel('Entry for this date already exists',self)
+        self.alert4.move(380,625)
+        self.alert4.setStyleSheet('color: #F04E4E; font-size: 24px;')
+        self.alert4.hide()
+
         self.copyrightText = QLabel('© mood tracker 2023',self)
         self.copyrightText.move(480,690)
         self.copyrightText.setStyleSheet('font-weight:thin;font-family: Verdana,sans-serif; font-size: 16px;')
 
+#Running Application
 if __name__ == "__main__":
     app = QApplication([])
     app.setStyle('Fusion')
