@@ -38,6 +38,11 @@ class MainWindow(QWidget):
         self.newwindow.show()
         self.newwindow.move(self.pos())
 
+    def editEnbutton(self):
+        self.newwindow = EditEntryWindow()
+        self.newwindow.show()
+        self.newwindow.move(self.pos())
+
     def MainUI(self):
         heading = QLabel('home',self)
         heading.move(50,20)
@@ -116,6 +121,7 @@ class MainWindow(QWidget):
         
         editEn = QPushButton('edit an entry',self)
         editEn.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        editEn.clicked.connect(self.editEnbutton)
         editEn.show()
         
         viewEn = QPushButton('view entries',self)
@@ -451,6 +457,135 @@ class AddEntryWindow(QWidget):
         self.alert4.move(380,625)
         self.alert4.setStyleSheet('color: #F04E4E; font-size: 24px;')
         self.alert4.hide()
+
+        self.copyrightText = QLabel('© mood tracker 2023',self)
+        self.copyrightText.move(480,690)
+        self.copyrightText.setStyleSheet('font-weight:thin;font-family: Verdana,sans-serif; font-size: 16px;')
+
+class EditEntryWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('mood tracker')
+        self.setFixedHeight(720)
+        self.setFixedWidth(1080)
+        self.MainUI()
+        self.show()
+
+    def editEntry(self):
+        date = self.date.text()
+        mood = self.mood.text()
+        daysc = self.dayscore.text()
+        acts = self.activities.text()
+        comms = self.comments.text()
+        con = mysql.connect(host=hostval,user=userval,password=passwordval,database='moodtracker')
+        cur = con.cursor()
+        q = "update mood set mood = '{}', dayscore = {}, activities = '{}', comments = '{}' where date = '{}'".format(mood,daysc,acts,comms,date)
+        cur.execute(q)
+        con.commit()
+
+    def MainUI(self):
+        self.heading = QLabel('edit an entry',self)
+        self.heading.move(50,20)
+        self.heading.setStyleSheet('font-size: 56px; font-family: Times New Roman, serif')
+        self.heading.show()
+
+        self.imagelabel = QLabel(self)
+        self.image = QPixmap('Fountain pen.png')
+        self.nimage = self.image.scaled(QSize(120,120))
+        self.imagelabel.setPixmap(self.nimage)
+        self.imagelabel.move(900,20)
+        self.imagelabel.show()
+
+        self.dateLabel = QLabel('date: ',self)
+        self.dateLabel.move(50,150)
+        self.dateLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.dateLabel.show()
+
+        self.date = QLineEdit(self)
+        self.date.move(200,150)
+        self.date.setFixedWidth(500)
+        self.date.setFixedHeight(40)
+        self.date.setStyleSheet('font-size: 20px')
+        self.date.show()
+
+        self.moodLabel = QLabel('mood: ',self)
+        self.moodLabel.move(50,230)
+        self.moodLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.moodLabel.show()
+
+        self.mood = QLineEdit(self)
+        self.mood.move(200,230)
+        self.mood.setFixedWidth(500)
+        self.mood.setFixedHeight(40)
+        self.mood.setStyleSheet('font-size: 20px')
+        self.mood.show()
+
+        self.dayscoreLabel = QLabel('day score: ',self)
+        self.dayscoreLabel.move(50,310)
+        self.dayscoreLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.dayscoreLabel.show()
+
+        self.dayscore = QLineEdit(self)
+        self.dayscore.move(200,310)
+        self.dayscore.setFixedWidth(500)
+        self.dayscore.setFixedHeight(40)
+        self.dayscore.setStyleSheet('font-size: 20px')
+        self.dayscore.show()
+
+        self.activitiesLabel = QLabel('activities: ',self)
+        self.activitiesLabel.move(50,390)
+        self.activitiesLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.activitiesLabel.show()
+
+        self.activities = QLineEdit(self)
+        self.activities.move(200,390)
+        self.activities.setFixedWidth(500)
+        self.activities.setFixedHeight(40)
+        self.activities.setStyleSheet('font-size: 20px')
+        self.activities.show()
+
+        self.commentsLabel = QLabel('comments: ',self)
+        self.commentsLabel.move(50,470)
+        self.commentsLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.commentsLabel.show()
+
+        self.comments = QLineEdit(self)
+        self.comments.move(200,470)
+        self.comments.setFixedWidth(500)
+        self.comments.setFixedHeight(120)
+        self.comments.setStyleSheet('font-size: 20px;')
+
+        self.addEnbutton = QPushButton('edit entry',self)
+        self.addEnbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        self.addEnbutton.move(50,620)
+        self.addEnbutton.show()
+        self.addEnbutton.clicked.connect(self.editEntry)
+
+        self.backbutton = QPushButton('back to home',self)
+        self.backbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        self.backbutton.move(200,620)
+        self.backbutton.show()
+        self.backbutton.clicked.connect(lambda:self.close())
+
+        # self.alert1 = QLabel('Enter the correct data in all fields',self)
+        # self.alert1.move(380,625)
+        # self.alert1.setStyleSheet('color: #F04E4E; font-size: 24px;')
+        # self.alert1.hide()
+
+        # self.alert2 = QLabel('Entry added successfully',self)
+        # self.alert2.move(380,625)
+        # self.alert2.setStyleSheet('color: #4bb85f; font-size: 24px;')
+        # self.alert2.hide()
+
+        # self.alert3 = QLabel("Check if entered data is in correct format/doesn't exceed word limit",self)
+        # self.alert3.move(380,625)
+        # self.alert3.setStyleSheet('color: #F04E4E; font-size: 24px;')
+        # self.alert3.hide()
+
+        # self.alert4 = QLabel('Entry for this date already exists',self)
+        # self.alert4.move(380,625)
+        # self.alert4.setStyleSheet('color: #F04E4E; font-size: 24px;')
+        # self.alert4.hide()
 
         self.copyrightText = QLabel('© mood tracker 2023',self)
         self.copyrightText.move(480,690)
