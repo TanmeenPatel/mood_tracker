@@ -19,6 +19,7 @@ passwordval = ""
 #Instructions for the Application
 inst = 'Welcome to mood tracker, your secure space to save your thoughts and track your mood.'
 
+#Windows
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -43,6 +44,11 @@ class MainWindow(QWidget):
         self.newwindow.show()
         self.newwindow.move(self.pos())
 
+    def viewEnbutton(self):
+        self.newwindow = ViewEntryWindow()
+        self.newwindow.move(self.pos())
+        self.newwindow.show()
+
     def MainUI(self):
         heading = QLabel('home',self)
         heading.move(50,20)
@@ -60,7 +66,7 @@ class MainWindow(QWidget):
         date.show()
         
         imagelabel = QLabel(self)
-        image = QPixmap('House.png')
+        image = QPixmap('./src/House.png')
         nimage = image.scaled(QSize(120,120))
         imagelabel.setPixmap(nimage)
         imagelabel.move(900,20)
@@ -107,8 +113,8 @@ class MainWindow(QWidget):
         actionsButtons.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         actionsButtons.setWidgetResizable(True)
         actionsButtons.show()
-        
         actionsBox = QGridLayout()
+        
         creDB = QPushButton('create database/log in',self)
         creDB.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
         creDB.clicked.connect(self.creDBbutton)
@@ -126,6 +132,7 @@ class MainWindow(QWidget):
         
         viewEn = QPushButton('view entries',self)
         viewEn.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        viewEn.clicked.connect(self.viewEnbutton)
         viewEn.show()
         
         delEn = QPushButton('delete an entry',self)
@@ -180,19 +187,28 @@ class CreateDBWindow(QWidget):
         except mysql.errors.InterfaceError:
             self.alert1.show()
             self.alert2.hide()
+            self.alert3.hide()
+            self.alert4.hide()
         except mysql.errors.ProgrammingError:
             self.alert1.show()
             self.alert2.hide()
+            self.alert3.hide()
+            self.alert4.hide()
         except mysql.errors.DatabaseError:
             if hostval == '':
                 self.alert2.hide()
+                self.alert3.hide()
+                self.alert4.hide()
                 self.alert1.show()
             else:
                 self.alert2.show()
                 self.alert1.hide()
+                self.alert3.hide()
+                self.alert4.hide()
         else:
             self.alert1.hide()
             self.alert2.hide()
+            self.alert4.hide()
             self.alert3.show()
 
     def logIn(self):
@@ -228,7 +244,7 @@ class CreateDBWindow(QWidget):
         self.heading.show()
 
         self.imagelabel = QLabel(self)
-        self.image = QPixmap('Hammer.png')
+        self.image = QPixmap('./src/Hammer.png')
         self.nimage = self.image.scaled(QSize(120,120))
         self.imagelabel.setPixmap(self.nimage)
         self.imagelabel.move(900,20)
@@ -361,7 +377,7 @@ class AddEntryWindow(QWidget):
         self.heading.show()
 
         self.imagelabel = QLabel(self)
-        self.image = QPixmap('Memo.png')
+        self.image = QPixmap('./src/Memo.png')
         self.nimage = self.image.scaled(QSize(120,120))
         self.imagelabel.setPixmap(self.nimage)
         self.imagelabel.move(900,20)
@@ -490,7 +506,7 @@ class EditEntryWindow(QWidget):
         self.heading.show()
 
         self.imagelabel = QLabel(self)
-        self.image = QPixmap('Fountain pen.png')
+        self.image = QPixmap('./src/Fountain pen.png')
         self.nimage = self.image.scaled(QSize(120,120))
         self.imagelabel.setPixmap(self.nimage)
         self.imagelabel.move(900,20)
@@ -590,6 +606,78 @@ class EditEntryWindow(QWidget):
         self.copyrightText = QLabel('© mood tracker 2023',self)
         self.copyrightText.move(480,690)
         self.copyrightText.setStyleSheet('font-weight:thin;font-family: Verdana,sans-serif; font-size: 16px;')
+
+class ViewEntryWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('mood tracker')
+        self.setFixedWidth(1080)
+        self.setFixedHeight(720)
+        self.MainUI()
+        self.show()
+
+    def viewEntries(self):
+        con = mysql.connect(host=hostval,user=userval,password=passwordval,database='moodtracker')
+        cur = con.cursor()
+        cur.execute('select * from mood')
+        results = cur.fetchall()
+        row = 0
+        for i in results:
+            iter = 0
+            column = 0
+            for j in i:
+                if iter == 0:
+                    j = j.strftime('%d/%m/%Y')
+                    x = QLabel(str(j),self)
+                    self.entriesBox.addWidget(x,row,column)
+                else:
+                    x = QLabel(str(j),self)
+                    self.entriesBox.addWidget(x, row, column)
+                column += 1
+                iter += 1
+            row += 1
+            column = 0
+            iter = 0
+
+    def MainUI(self):
+        self.heading = QLabel('view entries',self)
+        self.heading.move(50,20)
+        self.heading.setStyleSheet('font-size: 56px; font-family: Times New Roman, serif')
+        self.heading.show()
+
+        self.imagelabel = QLabel(self)
+        self.image = QPixmap('./src/Magnifying glass.png')
+        self.nimage = self.image.scaled(QSize(120,120))
+        self.imagelabel.setPixmap(self.nimage)
+        self.imagelabel.move(900,20)
+        self.imagelabel.show()
+
+        self.viewEnbutton = QPushButton('view entries',self)
+        self.viewEnbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        self.viewEnbutton.move(50,125)
+        self.viewEnbutton.show()
+        self.viewEnbutton.clicked.connect(self.viewEntries)
+
+        self.backbutton = QPushButton('back to home',self)
+        self.backbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        self.backbutton.move(215,125)
+        self.backbutton.clicked.connect(lambda:self.close())
+
+        self.entriesCont = QScrollArea(self)
+        self.entriesCont.move(50,180)
+        self.entriesCont.resize(980,480)
+        self.entriesCont.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.entriesCont.setWidgetResizable(True)
+        self.entriesBox = QGridLayout()
+        new = QWidget()
+        new.setLayout(self.entriesBox)
+        self.entriesCont.setWidget(new)
+        self.entriesCont.show()
+
+        copyrightText = QLabel('© mood tracker 2023',self)
+        copyrightText.move(480,690)
+        copyrightText.setStyleSheet('font-weight:thin;font-family: Verdana,sans-serif; font-size: 16px;')
+        copyrightText.show()
 
 #Running Application
 if __name__ == "__main__":
