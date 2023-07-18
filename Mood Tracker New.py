@@ -49,6 +49,23 @@ class MainWindow(QWidget):
         self.newwindow.move(self.pos())
         self.newwindow.show()
 
+    def delEnbutton(self):
+        self.newwindow = DeleteEntryWindow()
+        self.newwindow.move(self.pos())
+        self.newwindow.show()
+
+    def deleteDB(self):
+        try:
+            con = mysql.connect(host=hostval, user=userval, password=passwordval)
+            cur = con.cursor()
+            q = "drop database moodtracker"
+            cur.execute(q)
+            self.deleteerroralert.hide()
+            self.deletedalert.show()
+        except:
+            self.deletedalert.hide()
+            self.deleteerroralert.show()
+
     def MainUI(self):
         heading = QLabel('home',self)
         heading.move(50,20)
@@ -137,18 +154,30 @@ class MainWindow(QWidget):
         
         delEn = QPushButton('delete an entry',self)
         delEn.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        delEn.clicked.connect(self.delEnbutton)
         delEn.show()
         
-        showSumm = QPushButton('show summary',self)
-        showSumm.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
-        showSumm.show()
+        delDb = QPushButton('shred database',self)
+        delDb.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        delDb.clicked.connect(self.deleteDB)
+        delDb.show()
+
+        self.deletedalert = QLabel('Database successfully deleted',self)
+        self.deletedalert.setStyleSheet('color: #4bb85f; font-size: 18px;')
+        self.deletedalert.move(50,600)
+        self.deletedalert.hide()
+
+        self.deleteerroralert = QLabel('Error, make sure database exists and you have logged in',self)
+        self.deleteerroralert.setStyleSheet('color: #F04E4E; font-size: 18px;')
+        self.deleteerroralert.move(50,600)
+        self.deleteerroralert.hide()
         
         actionsBox.addWidget(creDB,0,0)
         actionsBox.addWidget(addEn,0,1)
         actionsBox.addWidget(editEn,0,2)
         actionsBox.addWidget(viewEn,1,0)
         actionsBox.addWidget(delEn,1,1)
-        actionsBox.addWidget(showSumm,1,2)
+        actionsBox.addWidget(delDb,1,2)
 
         new = QWidget()
         new.setLayout(actionsBox)
@@ -180,10 +209,8 @@ class CreateDBWindow(QWidget):
             con = mysql.connect(host=hostval,user=userval,password=passwordval)
             cur = con.cursor()
             cur.execute('create database MoodTracker')
-            print('Database created successfully')
             cur.execute('use moodtracker')
             cur.execute('create table mood (date date primary key, mood varchar(15), dayscore float(3,1), activities varchar(75), comments varchar(100))')
-            print('Table created successfully')
         except mysql.errors.InterfaceError:
             self.alert1.show()
             self.alert2.hide()
@@ -673,6 +700,120 @@ class ViewEntryWindow(QWidget):
         new.setLayout(self.entriesBox)
         self.entriesCont.setWidget(new)
         self.entriesCont.show()
+
+        copyrightText = QLabel('© mood tracker 2023',self)
+        copyrightText.move(480,690)
+        copyrightText.setStyleSheet('font-weight:thin;font-family: Verdana,sans-serif; font-size: 16px;')
+        copyrightText.show()
+
+class DeleteEntryWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('mood tracker')
+        self.setFixedWidth(1080)
+        self.setFixedHeight(720)
+        self.MainUI()
+        self.show()
+
+    def deleteEntry(self):
+        try:
+            date = self.date.text()
+            con = mysql.connect(host=hostval, user=userval, password=passwordval, database = 'moodtracker')
+            cur = con.cursor()
+            q = "select * from mood where date = '{}'".format(date)
+            cur.execute(q)
+            rowsno = cur.fetchall()
+            if len(rowsno) == 0:
+                self.alert2.hide()
+                self.alert3.hide()
+                self.alert4.hide()
+                self.alert1.show()
+            else:
+                qcond = "delete from mood where date = '{}'".format(date)
+                cur.execute(qcond)
+                con.commit()
+                self.alert1.hide()
+                self.alert3.hide()
+                self.alert4.hide()
+                self.alert2.show()
+        except:
+            self.alert1.hide()
+            self.alert2.hide()
+            self.alert4.hide()
+            self.alert3.show()
+
+    def deleteAllEntries(self):
+        con = mysql.connect(host=hostval, user=userval, password=passwordval, database = 'moodtracker')
+        cur = con.cursor()
+        q = "delete from mood"
+        cur.execute(q)
+        con.commit()
+        self.alert1.hide()
+        self.alert2.hide()
+        self.alert3.hide()
+        self.alert4.show()
+
+    def MainUI(self):
+        self.heading = QLabel('delete an entry',self)
+        self.heading.move(50,20)
+        self.heading.setStyleSheet('font-size: 56px; font-family: Times New Roman, serif')
+        self.heading.show()
+
+        self.imagelabel = QLabel(self)
+        self.image = QPixmap('./src/Wastebasket.png')
+        self.nimage = self.image.scaled(QSize(120,120))
+        self.imagelabel.setPixmap(self.nimage)
+        self.imagelabel.move(900,20)
+        self.imagelabel.show()
+
+        self.dateLabel = QLabel('date: ',self)
+        self.dateLabel.move(50,150)
+        self.dateLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
+        self.dateLabel.show()
+
+        self.date = QLineEdit(self)
+        self.date.move(200,150)
+        self.date.setFixedWidth(500)
+        self.date.setFixedHeight(40)
+        self.date.setStyleSheet('font-size: 20px')
+        self.date.show()
+
+        self.delEnbutton = QPushButton('delete entry',self)
+        self.delEnbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        self.delEnbutton.move(50,230)
+        self.delEnbutton.show()
+        self.delEnbutton.clicked.connect(self.deleteEntry)
+
+        self.delAllbutton = QPushButton('delete all entries',self)
+        self.delAllbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        self.delAllbutton.move(215,230)
+        self.delAllbutton.show()
+        self.delAllbutton.clicked.connect(self.deleteAllEntries)
+
+        self.backbutton = QPushButton('back to home',self)
+        self.backbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
+        self.backbutton.move(423,230)
+        self.backbutton.clicked.connect(lambda:self.close())
+
+        self.alert1 = QLabel('No entry with this date exists',self)
+        self.alert1.move(50,625)
+        self.alert1.setStyleSheet('color: #F04E4E; font-size: 24px;')
+        self.alert1.hide()
+
+        self.alert2 = QLabel('Entry successfully deleted',self)
+        self.alert2.move(50,625)
+        self.alert2.setStyleSheet('color: #4bb85f; font-size: 24px;')
+        self.alert2.hide()
+
+        self.alert3 = QLabel('Enter valid date',self)
+        self.alert3.move(50,625)
+        self.alert3.setStyleSheet('color: #F04E4E; font-size: 24px;')
+        self.alert3.hide()
+
+        self.alert4 = QLabel('All entries successfully deleted',self)
+        self.alert4.move(50,625)
+        self.alert4.setStyleSheet('color: #4bb85f; font-size: 24px;')
+        self.alert4.hide()
 
         copyrightText = QLabel('© mood tracker 2023',self)
         copyrightText.move(480,690)
