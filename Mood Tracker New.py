@@ -648,7 +648,22 @@ class ViewEntryWindow(QWidget):
         cur = con.cursor()
         cur.execute('select * from mood')
         results = cur.fetchall()
-        row = 0
+        date = QLabel('date',self)
+        date.setStyleSheet('font-weight: bold;')
+        mood = QLabel('mood',self)
+        mood.setStyleSheet('font-weight: bold;')
+        daysc = QLabel('day score',self)
+        daysc.setStyleSheet('font-weight: bold;')
+        activities = QLabel('activities',self)
+        activities.setStyleSheet('font-weight: bold;')
+        comms = QLabel('comments',self)
+        comms.setStyleSheet('font-weight: bold;')
+        self.entriesBox.addWidget(date,0,0)
+        self.entriesBox.addWidget(mood,0,1)
+        self.entriesBox.addWidget(daysc,0,2)
+        self.entriesBox.addWidget(activities,0,3)
+        self.entriesBox.addWidget(comms,0,4)
+        row = 1
         for i in results:
             iter = 0
             column = 0
