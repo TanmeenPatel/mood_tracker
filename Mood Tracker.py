@@ -1,6 +1,7 @@
 #Imported modules
 import sys
 from datetime import date
+import time
 import typing
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore
@@ -12,6 +13,7 @@ import mysql.connector as mysql
 
 #Global variables needed throughout program
 todaydate = date.today().strftime("%B %d, %Y")
+lineeditdate = date.today().strftime("%Y-%m-%d")
 hostval = ""
 userval = ""
 passwordval = ""
@@ -28,43 +30,93 @@ class MainWindow(QWidget):
         self.setFixedHeight(720)
         self.MainUI()
         self.show()
-    
+
+    def checkLoggedIn(self):
+        if hostval == "":
+            return "nope"
+
+    def homepageStats(self):
+        x = self.checkLoggedIn()
+        if x != "nope":
+            con = mysql.connect(host=hostval, user=userval, password=passwordval, database="moodtracker")
+            cur = con.cursor()
+            cur.execute("select mood from mood limit 1")
+            moods = cur.fetchone()
+            currentmood = moods[0]     
+
     def creDBbutton(self):
         self.newwindow = CreateDBWindow()
         self.newwindow.show()
         self.newwindow.move(self.pos())
+        self.loginalert.hide()
 
     def addEnbutton(self):
-        self.newwindow = AddEntryWindow()
-        self.newwindow.show()
-        self.newwindow.move(self.pos())
+        x = self.checkLoggedIn()
+        if x == "nope":
+            self.deleteerroralert.hide()
+            self.deletedalert.hide()
+            self.loginalert.show()
+        else:
+            self.newwindow = AddEntryWindow()
+            self.newwindow.show()
+            self.newwindow.move(self.pos())
+            self.loginalert.hide()
 
     def editEnbutton(self):
-        self.newwindow = EditEntryWindow()
-        self.newwindow.show()
-        self.newwindow.move(self.pos())
+        x = self.checkLoggedIn()
+        if x == "nope":
+            self.deleteerroralert.hide()
+            self.deletedalert.hide()
+            self.loginalert.show()
+        else:
+            self.newwindow = EditEntryWindow()
+            self.newwindow.show()
+            self.newwindow.move(self.pos())
+            self.loginalert.hide()
 
     def viewEnbutton(self):
-        self.newwindow = ViewEntryWindow()
-        self.newwindow.move(self.pos())
-        self.newwindow.show()
+        x = self.checkLoggedIn()
+        if x == "nope":
+            self.deleteerroralert.hide()
+            self.deletedalert.hide()
+            self.loginalert.show()
+        else:
+            self.newwindow = ViewEntryWindow()
+            self.newwindow.move(self.pos())
+            self.newwindow.show()
+            self.loginalert.hide()
 
     def delEnbutton(self):
-        self.newwindow = DeleteEntryWindow()
-        self.newwindow.move(self.pos())
-        self.newwindow.show()
+        x = self.checkLoggedIn()
+        if x == "nope":
+            self.deleteerroralert.hide()
+            self.deletedalert.hide()
+            self.loginalert.show()
+        else:
+            self.newwindow = DeleteEntryWindow()
+            self.newwindow.move(self.pos())
+            self.newwindow.show()
+            self.loginalert.hide()
 
     def deleteDB(self):
-        try:
-            con = mysql.connect(host=hostval, user=userval, password=passwordval)
-            cur = con.cursor()
-            q = "drop database moodtracker"
-            cur.execute(q)
+        x = self.checkLoggedIn()
+        if x == "nope":
             self.deleteerroralert.hide()
-            self.deletedalert.show()
-        except:
             self.deletedalert.hide()
-            self.deleteerroralert.show()
+            self.loginalert.show()
+        else:
+            try:
+                con = mysql.connect(host=hostval, user=userval, password=passwordval)
+                cur = con.cursor()
+                q = "drop database moodtracker"
+                cur.execute(q)
+                self.loginalert.hide()
+                self.deleteerroralert.hide()
+                self.deletedalert.show()
+            except:
+                self.loginalert.hide()
+                self.deletedalert.hide()
+                self.deleteerroralert.show()
 
     def MainUI(self):
         heading = QLabel('home',self)
@@ -171,6 +223,11 @@ class MainWindow(QWidget):
         self.deleteerroralert.setStyleSheet('color: #F04E4E; font-size: 18px;')
         self.deleteerroralert.move(50,600)
         self.deleteerroralert.hide()
+
+        self.loginalert = QLabel('Error, please log in',self)
+        self.loginalert.setStyleSheet('color: #F04E4E; font-size: 18px;')
+        self.loginalert.move(50,600)
+        self.loginalert.hide()
         
         actionsBox.addWidget(creDB,0,0)
         actionsBox.addWidget(addEn,0,1)
@@ -287,6 +344,7 @@ class CreateDBWindow(QWidget):
         self.host.setFixedWidth(500)
         self.host.setFixedHeight(40)
         self.host.setStyleSheet('font-size: 20px')
+        self.host.setText('localhost')
         self.host.show()
 
         self.userLabel = QLabel('user: ',self)
@@ -299,6 +357,7 @@ class CreateDBWindow(QWidget):
         self.user.setFixedWidth(500)
         self.user.setFixedHeight(40)
         self.user.setStyleSheet('font-size: 20px')
+        self.user.setText('root')
         self.user.show()
 
         self.passwordLabel = QLabel('password: ',self)
@@ -364,6 +423,10 @@ class AddEntryWindow(QWidget):
         self.MainUI()
         self.show()
 
+    # def close(self):
+    #     self.close()
+    #     MainWindow().homepageStats()
+
     def addEntry(self):
         try:
             date = self.date.text()
@@ -420,6 +483,7 @@ class AddEntryWindow(QWidget):
         self.date.setFixedWidth(500)
         self.date.setFixedHeight(40)
         self.date.setStyleSheet('font-size: 20px')
+        self.date.setText(lineeditdate)
         self.date.show()
 
         self.moodLabel = QLabel('mood: ',self)
@@ -479,6 +543,7 @@ class AddEntryWindow(QWidget):
         self.backbutton.setStyleSheet('padding: 5px 15px; background-color: #C5C5C5; font-style:italic;font-family: Verdana,sans-serif; font-size: 20px;')
         self.backbutton.move(200,620)
         self.backbutton.show()
+        # self.backbutton.clicked.connect(self.close)
         self.backbutton.clicked.connect(lambda:self.close())
 
         self.alert1 = QLabel('Enter the correct data in all fields',self)
@@ -549,6 +614,7 @@ class EditEntryWindow(QWidget):
         self.date.setFixedWidth(500)
         self.date.setFixedHeight(40)
         self.date.setStyleSheet('font-size: 20px')
+        self.date.setPlaceholderText(lineeditdate)
         self.date.show()
 
         self.moodLabel = QLabel('mood: ',self)
@@ -791,6 +857,7 @@ class DeleteEntryWindow(QWidget):
         self.date.setFixedWidth(500)
         self.date.setFixedHeight(40)
         self.date.setStyleSheet('font-size: 20px')
+        self.date.setPlaceholderText(lineeditdate)
         self.date.show()
 
         self.delEnbutton = QPushButton('delete entry',self)
@@ -838,6 +905,7 @@ class DeleteEntryWindow(QWidget):
 #Running Application
 if __name__ == "__main__":
     app = QApplication([])
+    app.setWindowIcon(QtGui.QIcon('./src/Notebook.png'))
     app.setStyle('Fusion')
     mw = MainWindow()
     sys.exit(app.exec_())
