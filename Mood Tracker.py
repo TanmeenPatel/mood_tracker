@@ -19,7 +19,20 @@ userval = ""
 passwordval = ""
 
 #Instructions for the Application
-inst = 'Welcome to mood tracker, your secure space to save your thoughts and track your mood.'
+greeting = 'Welcome to mood tracker, your secure space to save your thoughts and track your mood.'
+instructions = '''---------------------------
+INSTRUCTIONS
+---------------------------
+1. If you are using the app for the first time, follow the following instructions
+    1.1 Click create database
+    1.2 Enter all your SQL details
+    1.3 Click the "create database" button
+2. If you have already created a database, please log in using the same window. You will not be allowed access to any other windows until you have logged in.
+3. You can use the other buttons to be redirected to separate windows that'll help you perform those tasks
+4. If you wish to delete the database, click on shred database. DO NOT click it otherwise. It will PERMANENTLY DELETE all of your data'''
+
+print(greeting)
+print(instructions)
 
 #Windows
 class MainWindow(QWidget):
