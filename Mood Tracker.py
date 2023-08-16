@@ -10,6 +10,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QWidget
 import mysql.connector as mysql
+from PyQt5.QtCore import QTimer
 
 #Global variables needed throughout program
 todaydate = date.today().strftime("%B %d, %Y")
@@ -31,8 +32,8 @@ INSTRUCTIONS
 3. You can use the other buttons to be redirected to separate windows that'll help you perform those tasks
 4. If you wish to delete the database, click on shred database. DO NOT click it otherwise. It will PERMANENTLY DELETE all of your data'''
 
-print(greeting)
-print(instructions)
+# print(greeting)
+# print(instructions)
 
 #Windows
 class MainWindow(QWidget):
@@ -44,6 +45,21 @@ class MainWindow(QWidget):
         self.MainUI()
         self.show()
 
+    def checkmood(self):
+        global curr_mood, curr_daysc, curr_totalen
+        try:
+            data = open('data.txt','r').read().split()
+            curr_mood = data[0]
+            curr_daysc = data[1]
+            curr_totalen = data[2]
+        except:
+            curr_mood = " "
+            curr_daysc = " "
+            curr_totalen = " "
+            newfile = open('data.txt','x')
+            newfile.close()
+        QTimer.singleShot(2000,self.checkmood)
+
     def checkLoggedIn(self):
         if hostval == "":
             return "nope"
@@ -53,7 +69,7 @@ class MainWindow(QWidget):
         if x != "nope":
             con = mysql.connect(host=hostval, user=userval, password=passwordval, database="moodtracker")
             cur = con.cursor()
-            cur.execute("select mood from mood limit 1")
+            cur.execute("select mood from mood order by date limit 1")
             moods = cur.fetchone()
             currentmood = moods[0]     
 
@@ -154,30 +170,38 @@ class MainWindow(QWidget):
         imagelabel.move(900,20)
         imagelabel.show()
 
-        mood = QLabel('good',self)
-        mood.move(50,200)
-        mood.setStyleSheet('font-size: 48px; color: #219653; font-weight: bold; font-family: Verdana,sans-serif;')
-        mood.show()
+        self.checkmood()
+        
+        def uservals():
+            mood = QLabel(curr_mood,self)
+            mood.move(50,200)
+            mood.setStyleSheet('font-size: 48px; color: #219653; background-color: #f0f0f0; font-weight: bold; font-family: Verdana,sans-serif;')
+            mood.setFixedWidth(300)
+            mood.show()
+
+            ads = QLabel(curr_daysc,self)
+            ads.move(400,200)
+            ads.setStyleSheet('font-size: 48px; color: #DCAC00; background-color: #f0f0f0; font-weight: bold; font-family: Verdana,sans-serif;')
+            ads.setFixedWidth(200)
+            ads.show()
+
+            totentries = QLabel(curr_totalen,self)
+            totentries.move(800,200)
+            totentries.setStyleSheet('font-size: 48px; background-color: #f0f0f0; font-weight: bold; font-family: Verdana,sans-serif;')
+            totentries.setFixedWidth(200)
+            totentries.show()
+            QTimer.singleShot(2000,uservals)
+        uservals()
         
         moodLabel = QLabel('current mood',self)
         moodLabel.move(50,270)
         moodLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
         moodLabel.show()
-        
-        ads = QLabel('7.6',self)
-        ads.move(400,200)
-        ads.setStyleSheet('font-size: 48px; color: #DCAC00; font-weight: bold; font-family: Verdana,sans-serif;')
-        ads.show()
-        
+
         adsLabel = QLabel('average day score',self)
         adsLabel.move(400,270)
         adsLabel.setStyleSheet('font-size: 24px; font-family: Verdana,sans-serif;')
         adsLabel.show()
-        
-        totentries = QLabel('123',self)
-        totentries.move(800,200)
-        totentries.setStyleSheet('font-size: 48px; font-weight: bold; font-family: Verdana,sans-serif;')
-        totentries.show()
 
         totentriesLabel = QLabel('total entries',self)
         totentriesLabel.move(800,270)
@@ -452,6 +476,8 @@ class AddEntryWindow(QWidget):
             q = "insert into mood values('{}','{}',{},'{}','{}')".format(date,mood,daysc,acts,comms)
             cur.execute(q)
             con.commit()
+            cur.execute('select count(*) from mood')
+            totalentries = str(cur.fetchall()[0][0])
         except mysql.errors.ProgrammingError:
             self.alert3.hide()
             self.alert2.hide()
@@ -472,6 +498,9 @@ class AddEntryWindow(QWidget):
             self.alert3.hide()
             self.alert4.hide()
             self.alert2.show()
+            write = open('data.txt','w')
+            write.write(mood+' '+daysc+' '+totalentries)
+            write.close()
 
     def MainUI(self):
         self.heading = QLabel('add entry',self)
@@ -509,6 +538,7 @@ class AddEntryWindow(QWidget):
         self.mood.setFixedWidth(500)
         self.mood.setFixedHeight(40)
         self.mood.setStyleSheet('font-size: 20px')
+        self.mood.setPlaceholderText("great/good/okay/bad/distressful")
         self.mood.show()
 
         self.dayscoreLabel = QLabel('day score: ',self)
