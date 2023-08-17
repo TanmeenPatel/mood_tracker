@@ -10,4 +10,10 @@ an aesthetically pleasing application to track and record your **daily mood**. M
 + mysql.connector and pyqt5 packages
 
 ## instructions
-*coming soon!*
+1. if you are using the app for the first time, follow the following instructions
+    1.1 click create database
+    1.2 enter all your SQL details
+    1.3 click the "create database" button
+2. if you have already created a database, please log in using the same window. You will not be allowed access to any other windows until you have logged in.
+3. you can use the other buttons to be redirected to separate windows that'll help you perform those tasks
+4. if you wish to delete the database, click on shred database. DO NOT click it otherwise. It will PERMANENTLY DELETE all of your data'''
