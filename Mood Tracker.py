@@ -55,7 +55,7 @@ class MainWindow(QWidget):
             elif curr_mood == "good":
                 moodtxtclr = "#1dc263"
             elif curr_mood == "okay":
-                moodtxtclr = "#e3d917"
+                moodtxtclr = "#DCAC00"
             elif curr_mood == "bad":
                 moodtxtclr = "#de5a43"
             elif curr_mood == "distressful":
@@ -63,15 +63,15 @@ class MainWindow(QWidget):
             else:
                 moodtxtclr = "000000"
             curr_daysc = data[1]
-            if curr_daysc >= '8.0' and curr_daysc <= '10.0':
+            if float(curr_daysc) >= 8.0 and float(curr_daysc) <= 10.0:
                 scoretxtclr = "#219653"
-            elif curr_daysc >= '6.0' and curr_daysc < '8.0':
+            elif float(curr_daysc) >= 6.0 and float(curr_daysc) < 8.0:
                 scoretxtclr = "#1dc263"
-            elif curr_daysc >= '4.0' and curr_daysc < '6.0':
-                scoretxtclr = "#e3d917"
-            elif curr_daysc >= '2.0' and curr_daysc < '4.0':
+            elif float(curr_daysc) >= 4.0 and float(curr_daysc) < 6.0:
+                scoretxtclr = "#DCAC00"
+            elif float(curr_daysc) >= 2.0 and float(curr_daysc) < 4.0:
                 scoretxtclr = "#de5a43"
-            elif curr_daysc >= '0' and curr_daysc < '2.0':
+            elif float(curr_daysc) >= 0 and float(curr_daysc) < 2.0:
                 scoretxtclr = "#a11902"
             else:
                 scoretxtclr = "#000000"
@@ -665,6 +665,15 @@ class EditEntryWindow(QWidget):
         q = "update mood set mood = '{}', dayscore = {}, activities = '{}', comments = '{}' where date = '{}'".format(mood,daysc,acts,comms,date)
         cur.execute(q)
         con.commit()
+        cur.execute("select mood, dayscore from mood order by date desc limit 1")
+        userstats = cur.fetchall()
+        curr_mood = str(userstats[0][0])
+        curr_score = str(userstats[0][1])
+        cur.execute('select count(*) from mood')
+        totalentries = str(cur.fetchall()[0][0])
+        write = open('data.txt','w')
+        write.write(curr_mood+' '+curr_score+' '+totalentries)
+        write.close()
 
     def MainUI(self):
         self.heading = QLabel('edit an entry',self)
