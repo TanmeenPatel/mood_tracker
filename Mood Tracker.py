@@ -46,16 +46,48 @@ class MainWindow(QWidget):
         self.show()
 
     def checkmood(self):
-        global curr_mood, curr_daysc, curr_totalen
+        global curr_mood, curr_daysc, curr_totalen, moodtxtclr, scoretxtclr
         try:
             data = open('data.txt','r').read().split()
             curr_mood = data[0]
+            if curr_mood == "great":
+                moodtxtclr = "#219653"
+            elif curr_mood == "good":
+                moodtxtclr = "#1dc263"
+            elif curr_mood == "okay":
+                moodtxtclr = "#e3d917"
+            elif curr_mood == "bad":
+                moodtxtclr = "#de5a43"
+            elif curr_mood == "distressful":
+                moodtxtclr = "#a11902"
+            else:
+                moodtxtclr = "000000"
             curr_daysc = data[1]
+            if curr_daysc >= '8.0' and curr_daysc <= '10.0':
+                scoretxtclr = "#219653"
+            elif curr_daysc >= '6.0' and curr_daysc < '8.0':
+                scoretxtclr = "#1dc263"
+            elif curr_daysc >= '4.0' and curr_daysc < '6.0':
+                scoretxtclr = "#e3d917"
+            elif curr_daysc >= '2.0' and curr_daysc < '4.0':
+                scoretxtclr = "#de5a43"
+            elif curr_daysc >= '0' and curr_daysc < '2.0':
+                scoretxtclr = "#a11902"
+            else:
+                scoretxtclr = "#000000"
             curr_totalen = data[2]
+        except IndexError:
+            curr_mood = " "
+            curr_daysc = " "
+            curr_totalen = " "
+            moodtxtclr = '#000000'
+            scoretxtclr = '#000000'
         except:
             curr_mood = " "
             curr_daysc = " "
             curr_totalen = " "
+            moodtxtclr = '#000000'
+            scoretxtclr = '#000000'
             newfile = open('data.txt','x')
             newfile.close()
         QTimer.singleShot(2000,self.checkmood)
@@ -175,13 +207,13 @@ class MainWindow(QWidget):
         def uservals():
             mood = QLabel(curr_mood,self)
             mood.move(50,200)
-            mood.setStyleSheet('font-size: 48px; color: #219653; background-color: #f0f0f0; font-weight: bold; font-family: Verdana,sans-serif;')
+            mood.setStyleSheet('font-size: 48px; color: {}; background-color: #f0f0f0; font-weight: bold; font-family: Verdana,sans-serif;'.format(moodtxtclr))
             mood.setFixedWidth(300)
             mood.show()
 
             ads = QLabel(curr_daysc,self)
             ads.move(400,200)
-            ads.setStyleSheet('font-size: 48px; color: #DCAC00; background-color: #f0f0f0; font-weight: bold; font-family: Verdana,sans-serif;')
+            ads.setStyleSheet('font-size: 48px; color: {}; background-color: #f0f0f0; font-weight: bold; font-family: Verdana,sans-serif;'.format(scoretxtclr))
             ads.setFixedWidth(200)
             ads.show()
 
